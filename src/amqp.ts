@@ -136,3 +136,5 @@ export class Amqp {
     return this.queueLib.connect(url, options);
   }
 }
+
+export default new Amqp();

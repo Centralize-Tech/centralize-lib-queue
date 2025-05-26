@@ -18,4 +18,6 @@ export declare class Amqp {
     consume(queueName: string, _function: any, noAckParam?: boolean, prefetchParam?: number, maxPriority?: boolean): Promise<amqpLib.Replies.Consume>;
     serverConnect(): Promise<amqpLib.ChannelModel>;
 }
+declare const _default: Amqp;
+export default _default;
 //# sourceMappingURL=amqp.d.ts.map
