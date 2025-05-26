@@ -1,1 +1,3 @@
-export { Amqp } from './src/amqp';
+import { Amqp } from './src/amqp';
+
+export default new Amqp();

@@ -8,8 +8,8 @@ import config from '../config';
 export class Amqp {
 
   public config: any;
-  public ampqStats: any;
-  public queueLib: any;
+  public ampqStats: AmqpStats;
+  public queueLib: typeof amqpLib;
   public connection: any;
   public channel: any;
   constructor(inputConfig: IConfig = {}) {
@@ -136,5 +136,3 @@ export class Amqp {
     return this.queueLib.connect(url, options);
   }
 }
-
-export default new Amqp();

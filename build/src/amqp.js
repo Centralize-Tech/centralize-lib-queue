@@ -115,4 +115,3 @@ class Amqp {
     }
 }
 exports.Amqp = Amqp;
-exports.default = new Amqp();
