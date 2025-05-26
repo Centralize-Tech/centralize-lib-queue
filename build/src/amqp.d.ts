@@ -1,10 +1,8 @@
-import amqpLib from 'amqplib';
-import { AmqpStats } from './amqpStats';
 import { IConfig } from './interfaces/IConfig';
 export declare class Amqp {
     config: any;
-    ampqStats: AmqpStats;
-    queueLib: typeof amqpLib;
+    ampqStats: any;
+    queueLib: any;
     connection: any;
     channel: any;
     constructor(inputConfig?: IConfig);
@@ -15,8 +13,8 @@ export declare class Amqp {
     sendJSONMessage(message: object, queue: string, isMassive?: boolean): Promise<string>;
     sendMessage(message: object | Array<string>, queue: string, isMassive?: boolean, options?: any): Promise<string>;
     ack(messageObj: any, channel: any): Promise<any>;
-    consume(queueName: string, _function: any, noAckParam?: boolean, prefetchParam?: number, maxPriority?: boolean): Promise<amqpLib.Replies.Consume>;
-    serverConnect(): Promise<amqpLib.ChannelModel>;
+    consume(queueName: string, _function: any, noAckParam?: boolean, prefetchParam?: number, maxPriority?: boolean): Promise<any>;
+    serverConnect(): any;
 }
 declare const _default: Amqp;
 export default _default;

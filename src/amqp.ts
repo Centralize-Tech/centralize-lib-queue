@@ -8,8 +8,8 @@ import config from '../config';
 export class Amqp {
 
   public config: any;
-  public ampqStats: AmqpStats;
-  public queueLib: typeof amqpLib;
+  public ampqStats: any;
+  public queueLib: any;
   public connection: any;
   public channel: any;
   constructor(inputConfig: IConfig = {}) {
