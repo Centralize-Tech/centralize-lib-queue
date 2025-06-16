@@ -1,3 +1,1 @@
-import { Amqp } from './src/amqp';
-
-export default Amqp;
+export { Amqp } from './src/amqp';
