@@ -35,6 +35,7 @@ export class Amqp {
   }
 
   private static get connectionOptions(): IConnectionOptions {
+    console.log('config', Amqp.config);
     return {
       url: `amqps://${Amqp.config.user}:${Amqp.config.passwd}@${Amqp.config.host}:${Amqp.config.port}/${Amqp.config.vhost}`,
       options: { heartbeat: Amqp.config.connectionHeartbeat },

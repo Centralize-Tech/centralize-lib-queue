@@ -36,6 +36,7 @@ class Amqp {
         return value === true || (value === null || value === void 0 ? void 0 : value.toString().toLowerCase()) === 'true';
     }
     static get connectionOptions() {
+        console.log('config', Amqp.config);
         return {
             url: `amqps://${Amqp.config.user}:${Amqp.config.passwd}@${Amqp.config.host}:${Amqp.config.port}/${Amqp.config.vhost}`,
             options: { heartbeat: Amqp.config.connectionHeartbeat },
