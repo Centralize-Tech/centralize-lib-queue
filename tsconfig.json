@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "ES6",
     "module": "commonjs",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -9,6 +9,6 @@
     "esModuleInterop": true,
     "strict": true
   },
-  "include": ["src/**/*", "src/index.ts", "index.d.ts"],
+  "include": ["src/**/*", "src/index.ts"],
   "exclude": ["node_modules"]
 }
