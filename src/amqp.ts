@@ -15,14 +15,13 @@ export class Amqp {
   constructor(inputConfig: IConfig = {}) {
     Amqp.config = { ...config, ...inputConfig };
     Amqp.queueLib = amqpLib;
-    const useSSL = Amqp.parseBoolean(Amqp.config.useSSL);
 
     console.log(`Connecting to ${Amqp.config.host}`);
     Amqp.ampqStats = new AmqpStats({
       username: Amqp.config.consoleUser,
       password: Amqp.config.consolePasswd,
-      hostname: useSSL ? Amqp.config.host : `${Amqp.config.host}:${Amqp.config.consolePort}`,
-      protocol: useSSL ? 'https' : 'http'
+      hostname: Amqp.config.host,
+      protocol: 'https'
     });
     console.log('Successful connection');
   }
@@ -36,9 +35,8 @@ export class Amqp {
   }
 
   private static get connectionOptions(): IConnectionOptions {
-    const protocol: string = Amqp.parseBoolean(Amqp.config.useSSL) ? 'amqps' : 'amqp';
     return {
-      url: `${protocol}://${Amqp.config.user}:${Amqp.config.passwd}@${Amqp.config.host}:${Amqp.config.port}/${Amqp.config.vhost}`,
+      url: `amqps://${Amqp.config.user}:${Amqp.config.passwd}@${Amqp.config.host}:${Amqp.config.port}/${Amqp.config.vhost}`,
       options: { heartbeat: Amqp.config.connectionHeartbeat },
     };
   }

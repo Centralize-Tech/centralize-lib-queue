@@ -20,13 +20,12 @@ class Amqp {
     constructor(inputConfig = {}) {
         Amqp.config = Object.assign(Object.assign({}, config_1.default), inputConfig);
         Amqp.queueLib = amqplib_1.default;
-        const useSSL = Amqp.parseBoolean(Amqp.config.useSSL);
         console.log(`Connecting to ${Amqp.config.host}`);
         Amqp.ampqStats = new amqpStats_1.AmqpStats({
             username: Amqp.config.consoleUser,
             password: Amqp.config.consolePasswd,
-            hostname: useSSL ? Amqp.config.host : `${Amqp.config.host}:${Amqp.config.consolePort}`,
-            protocol: useSSL ? 'https' : 'http'
+            hostname: Amqp.config.host,
+            protocol: 'https'
         });
         console.log('Successful connection');
     }
@@ -37,9 +36,8 @@ class Amqp {
         return value === true || (value === null || value === void 0 ? void 0 : value.toString().toLowerCase()) === 'true';
     }
     static get connectionOptions() {
-        const protocol = Amqp.parseBoolean(Amqp.config.useSSL) ? 'amqps' : 'amqp';
         return {
-            url: `${protocol}://${Amqp.config.user}:${Amqp.config.passwd}@${Amqp.config.host}:${Amqp.config.port}/${Amqp.config.vhost}`,
+            url: `amqps://${Amqp.config.user}:${Amqp.config.passwd}@${Amqp.config.host}:${Amqp.config.port}/${Amqp.config.vhost}`,
             options: { heartbeat: Amqp.config.connectionHeartbeat },
         };
     }
