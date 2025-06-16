@@ -1,6 +1,4 @@
-import { Amqp } from './amqp';
+const Amqp = require('./Amqp');
 
-const amqpInstance = new Amqp();
-
-export default amqpInstance;
-export { Amqp };
+module.exports = new Amqp();
+module.exports.Amqp = Amqp;
