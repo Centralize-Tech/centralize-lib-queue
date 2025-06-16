@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Amqp = exports.getQueuePriorityMessageCount = exports.getQueueMessageCount = exports.purgePriorityQueue = exports.purgeQueue = exports.ack = exports.consume = exports.sendPriorityMessage = exports.sendJSONMessage = void 0;
 const amqp_1 = require("./amqp");
 Object.defineProperty(exports, "Amqp", { enumerable: true, get: function () { return amqp_1.Amqp; } });
-// Exportar funciones individuales
 const sendJSONMessage = (message_1, queue_1, ...args_1) => __awaiter(void 0, [message_1, queue_1, ...args_1], void 0, function* (message, queue, isMassive = false) {
     const amqpInstance = new amqp_1.Amqp();
     return amqpInstance.sendJSONMessage(message, queue, isMassive);

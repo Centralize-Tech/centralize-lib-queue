@@ -1,6 +1,5 @@
 import { Amqp } from './amqp';
 
-// Exportar funciones individuales
 export const sendJSONMessage = async (message: object, queue: string, isMassive: boolean = false) => {
   const amqpInstance = new Amqp();
   return amqpInstance.sendJSONMessage(message, queue, isMassive);
@@ -41,5 +40,4 @@ export const getQueuePriorityMessageCount = async (queue: string, maxQueuePriori
   return amqpInstance.getQueuePriorityMessageCount(queue, maxQueuePriority);
 };
 
-// Exportar la clase para uso con instancias personalizadas
 export { Amqp };

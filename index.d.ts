@@ -13,7 +13,6 @@ export class Amqp {
   getQueuePriorityMessageCount(queue: string, maxQueuePriority?: number): Promise<number>
 }
 
-// Exportar funciones individuales
 export function sendJSONMessage(message: any, queue: string, isMassive?: boolean): Promise<any>;
 export function sendPriorityMessage(message: any, queue: string, priority: number, maxPriority?: number, isMassive?: boolean): Promise<any>;
 export function consume(queueName: string, _function: any, noAckParam?: boolean, prefetchParam?: number, maxPriority?: boolean): Promise<any>;
@@ -23,6 +22,5 @@ export function purgePriorityQueue(queue: string, maxPriority?: number): Promise
 export function getQueueMessageCount(queue: string, queueOptions?: any): Promise<number>;
 export function getQueuePriorityMessageCount(queue: string, maxQueuePriority?: number): Promise<number>;
 
-// Exportar la instancia por defecto
 declare const defaultExport: Amqp;
 export default defaultExport;
