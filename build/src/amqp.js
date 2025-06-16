@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Amqp = void 0;
 const amqplib_1 = __importDefault(require("amqplib"));
 const amqpStats_1 = require("./amqpStats");
 const config_1 = __importDefault(require("../config"));
@@ -182,4 +183,4 @@ class Amqp {
         });
     }
 }
-module.exports = Amqp;
+exports.Amqp = Amqp;

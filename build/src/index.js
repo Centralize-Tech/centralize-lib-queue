@@ -1,4 +1,7 @@
 "use strict";
-const Amqp = require('./Amqp');
-module.exports = new Amqp();
-module.exports.Amqp = Amqp;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Amqp = void 0;
+const amqp_1 = require("./amqp");
+Object.defineProperty(exports, "Amqp", { enumerable: true, get: function () { return amqp_1.Amqp; } });
+const amqpInstance = new amqp_1.Amqp();
+exports.default = amqpInstance;
