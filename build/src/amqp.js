@@ -18,32 +18,32 @@ const amqpStats_1 = require("./amqpStats");
 const config_1 = __importDefault(require("../config"));
 class Amqp {
     constructor(inputConfig = {}) {
-        this.config = Object.assign(Object.assign({}, config_1.default), inputConfig);
-        this.queueLib = amqplib_1.default;
-        const useSSL = this.parseBoolean(this.config.useSSL);
-        console.log(`Connecting to ${this.config.host}`);
-        this.ampqStats = new amqpStats_1.AmqpStats({
-            username: this.config.consoleUser,
-            password: this.config.consolePasswd,
-            hostname: useSSL ? this.config.host : `${this.config.host}:${this.config.consolePort}`,
+        Amqp.config = Object.assign(Object.assign({}, config_1.default), inputConfig);
+        Amqp.queueLib = amqplib_1.default;
+        const useSSL = Amqp.parseBoolean(Amqp.config.useSSL);
+        console.log(`Connecting to ${Amqp.config.host}`);
+        Amqp.ampqStats = new amqpStats_1.AmqpStats({
+            username: Amqp.config.consoleUser,
+            password: Amqp.config.consolePasswd,
+            hostname: useSSL ? Amqp.config.host : `${Amqp.config.host}:${Amqp.config.consolePort}`,
             protocol: useSSL ? 'https' : 'http'
         });
         console.log('Successful connection');
     }
     setConfig(inputConfig = {}) {
-        this.config = Object.assign(Object.assign({}, this.config), inputConfig);
+        Amqp.config = Object.assign(Object.assign({}, Amqp.config), inputConfig);
     }
-    parseBoolean(value) {
+    static parseBoolean(value) {
         return value === true || (value === null || value === void 0 ? void 0 : value.toString().toLowerCase()) === 'true';
     }
-    get connectionOptions() {
-        const protocol = this.parseBoolean(this.config.useSSL) ? 'amqps' : 'amqp';
+    static get connectionOptions() {
+        const protocol = Amqp.parseBoolean(Amqp.config.useSSL) ? 'amqps' : 'amqp';
         return {
-            url: `${protocol}://${this.config.user}:${this.config.passwd}@${this.config.host}:${this.config.port}/${this.config.vhost}`,
-            options: { heartbeat: this.config.connectionHeartbeat },
+            url: `${protocol}://${Amqp.config.user}:${Amqp.config.passwd}@${Amqp.config.host}:${Amqp.config.port}/${Amqp.config.vhost}`,
+            options: { heartbeat: Amqp.config.connectionHeartbeat },
         };
     }
-    sendPriorityMessage(message, queue, priority, maxPriority = 10, isMassive = false) {
+    static sendPriorityMessage(message, queue, priority, maxPriority = 10, isMassive = false) {
         return this.sendMessage(message, queue, isMassive, {
             queueOptions: {
                 maxPriority,
@@ -53,10 +53,10 @@ class Amqp {
             },
         });
     }
-    sendJSONMessage(message, queue, isMassive = false) {
+    static sendJSONMessage(message, queue, isMassive = false) {
         return this.sendMessage(message, queue, isMassive);
     }
-    sendMessage(message_1, queue_1) {
+    static sendMessage(message_1, queue_1) {
         return __awaiter(this, arguments, void 0, function* (message, queue, isMassive = false, options = {}) {
             let connection;
             let channel;
@@ -91,7 +91,7 @@ class Amqp {
             }
         });
     }
-    ack(messageObj, channel) {
+    static ack(messageObj, channel) {
         return __awaiter(this, void 0, void 0, function* () {
             if (channel) {
                 return channel.ack(messageObj);
@@ -99,7 +99,7 @@ class Amqp {
             return false;
         });
     }
-    consume(queueName_1, _function_1) {
+    static consume(queueName_1, _function_1) {
         return __awaiter(this, arguments, void 0, function* (queueName, _function, noAckParam = true, prefetchParam = 0, maxPriority = false) {
             const connection = yield this.serverConnect();
             const channel = yield connection.createChannel();
@@ -115,18 +115,18 @@ class Amqp {
             if (prefetchParam !== 0 && !noAckParam) {
                 yield channel.prefetch(prefetchParam);
             }
-            this.connection = connection;
-            this.channel = channel;
+            Amqp.connection = connection;
+            Amqp.channel = channel;
             return channel.consume(queueName, (msg) => {
                 console.log(' [x] Received in \'%s\': \'%s\'', queueName, msg.content.toString());
                 _function(queueName, msg.content.toString(), channel, msg);
             }, { noAck: noAckParam });
         });
     }
-    serverConnect() {
-        const { url, options } = this.connectionOptions;
+    static serverConnect() {
+        const { url, options } = Amqp.connectionOptions;
         console.log(`Connecting to ${url}`);
-        return this.queueLib.connect(url, options);
+        return Amqp.queueLib.connect(url, options);
     }
 }
 exports.Amqp = Amqp;
