@@ -4,40 +4,40 @@ import { IAmqpStats } from './interfaces/IAmqpStats';
 
 export class AmqpStats {
 
-  private static hostname: any;
-  private static username: any;
-  private static password: any;
-  private static protocol: any;
-  private static requestInstance: any;
+  hostname: any;
+  username: any;
+  password: any;
+  protocol: any;
+  requestInstance: any;
   constructor(options: IAmqpStats = {}) {
-    AmqpStats.hostname = options.hostname || 'localhost:55672';
-    AmqpStats.username = options.username || 'guest';
-    AmqpStats.password = options.password || 'guest';
-    AmqpStats.protocol = options.protocol || 'http';
-    AmqpStats.requestInstance = axios;
+    this.hostname = options.hostname || 'localhost:55672';
+    this.username = options.username || 'guest';
+    this.password = options.password || 'guest';
+    this.protocol = options.protocol || 'http';
+    this.requestInstance = axios;
   }
 
-  static sendRequest(endpoint: string, params: object = {}, method: string = 'GET') {
-    const url = AmqpStats.getRequestPath(endpoint);
+  sendRequest(endpoint: string, params: object = {}, method: string = 'GET') {
+    const url = this.getRequestPath(endpoint);
     console.log(url);
     const requestOptions = {
       url,
       method,
       auth: {
-        username: AmqpStats.username,
-        password: AmqpStats.password,
+        username: this.username,
+        password: this.password,
       },
       params,
     };
 
-    return AmqpStats.requestInstance(requestOptions).then((response: any) => response.data).catch(console.error);
+    return this.requestInstance(requestOptions).then((response: any) => response.data).catch(console.error);
   }
 
-  static getRequestPath(endpoint: string): string {
-    return `${AmqpStats.protocol}://${AmqpStats.hostname}/api/${endpoint}`;
+  getRequestPath(endpoint: string): string {
+    return `${this.protocol}://${this.hostname}/api/${endpoint}`;
   }
 
-  static queues() {
-    return AmqpStats.sendRequest('queues');
+  queues() {
+    return this.sendRequest('queues');
   }
 }
