@@ -20,29 +20,24 @@ class Amqp {
     constructor(inputConfig = {}) {
         this.config = Object.assign(Object.assign({}, config_1.default), inputConfig);
         this.queueLib = amqplib_1.default;
+        const useSSL = ['true', 'TRUE'].includes(this.config.useSSL) || this.config.useSSL === true;
         console.log(`Connecting to ${this.config.host}`);
         this.ampqStats = new amqpStats_1.AmqpStats({
             username: this.config.consoleUser,
             password: this.config.consolePasswd,
-            hostname: this.config.host,
-            protocol: 'https'
+            hostname: useSSL ? this.config.host : `${this.config.host}:${this.config.consolePort}`,
+            protocol: useSSL ? 'https' : 'http',
         });
         console.log('Successful connection');
     }
     setConfig(inputConfig = {}) {
         this.config = Object.assign(Object.assign({}, this.config), inputConfig);
     }
-    parseBoolean(value) {
-        return value === true || (value === null || value === void 0 ? void 0 : value.toString().toLowerCase()) === 'true';
-    }
-    connectionOptions() {
-        return {
-            url: `amqps://${this.config.user}:${this.config.passwd}@${this.config.host}:${this.config.port}/${this.config.vhost}`,
-            options: { heartbeat: this.config.connectionHeartbeat },
-        };
+    setQueueLib(instance) {
+        this.queueLib = instance;
     }
     sendPriorityMessage(message, queue, priority, maxPriority = 10, isMassive = false) {
-        return this.sendMessage(message, queue, isMassive, {
+        return this.sendMessage(message, queue, 'json', isMassive, {
             queueOptions: {
                 maxPriority,
             },
@@ -52,27 +47,25 @@ class Amqp {
         });
     }
     sendJSONMessage(message, queue, isMassive = false) {
-        return this.sendMessage(message, queue, isMassive);
+        return this.sendMessage(message, queue, 'json', isMassive);
     }
-    sendMessage(message_1, queue_1) {
-        return __awaiter(this, arguments, void 0, function* (message, queue, isMassive = false, options = {}) {
-            let connection;
-            let channel;
+    sendMessage(message_1, queue_1, type_1) {
+        return __awaiter(this, arguments, void 0, function* (message, queue, type, isMassive = false, options = {}) {
             const messagesOptions = options.messageOptions || {};
             const queueOptions = options.queueOptions || {};
             try {
-                connection = yield this.serverConnect();
+                this.connection = yield this.serverConnect();
                 console.log('QUEUE Connection established');
-                channel = yield connection.createChannel();
+                this.channel = yield this.connection.createChannel();
                 console.log('QUEUE Channel connected');
-                yield channel.assertQueue(queue, queueOptions);
+                yield this.channel.assertQueue(queue, queueOptions);
                 console.log('QUEUE Queue asserted');
                 if (isMassive && Array.isArray(message)) {
-                    const promises = message.map((messageElement) => channel.sendToQueue(queue, Buffer.from(JSON.stringify(messageElement)), messagesOptions));
+                    const promises = message.map((messageElement) => this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(messageElement)), messagesOptions));
                     yield Promise.allSettled(promises);
                 }
                 else {
-                    yield channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), messagesOptions);
+                    yield this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), messagesOptions);
                 }
                 return 'Message sent successfully';
             }
@@ -81,12 +74,92 @@ class Amqp {
                 throw error.message;
             }
             finally {
-                if (channel)
-                    yield channel.close().catch(() => console.warn('Error closing channel'));
-                if (connection)
-                    yield connection.close().catch(() => console.warn('Error closing connection'));
+                yield this.channel.close().catch(() => console.warn('Error closing channel'));
+                yield this.connection.close().catch(() => console.warn('Error closing connection'));
                 console.log('QUEUE Closing connection');
             }
+        });
+    }
+    purgePriorityQueue(queue_1) {
+        return __awaiter(this, arguments, void 0, function* (queue, maxPriority = 10) {
+            return this.purgeQueue(queue, {
+                queueOptions: {
+                    maxPriority,
+                },
+            });
+        });
+    }
+    purgeQueue(queue_1) {
+        return __awaiter(this, arguments, void 0, function* (queue, options = {}) {
+            const queueOptions = options.queueOptions || {};
+            this.connection = yield this.serverConnect();
+            console.log('QUEUE Connection established');
+            this.channel = yield this.connection.createChannel();
+            try {
+                console.log('QUEUE Channel connected');
+                yield this.channel.assertQueue(queue, queueOptions);
+                console.log('QUEUE Queue asserted');
+                const purgeResponse = yield this.channel.purgeQueue(queue);
+                console.log(`QUEUE ${queue} purge with ${purgeResponse.messageCount || 0}  removes`);
+            }
+            catch (error) {
+                console.error('Error purge queue', error);
+                throw error.message;
+            }
+            finally {
+                yield this.channel.close().catch(() => console.warn('Error closing channel'));
+                yield this.connection.close().catch(() => console.warn('Error closing connection'));
+                console.log('QUEUE Closing connection');
+            }
+        });
+    }
+    getQueueMessageCount(queue_1) {
+        return __awaiter(this, arguments, void 0, function* (queue, queueOptions = {}) {
+            this.connection = yield this.serverConnect();
+            this.channel = yield this.connection.createChannel();
+            try {
+                const queueData = yield this.channel.assertQueue(queue, queueOptions);
+                yield this.channel.close().catch(() => console.warn('Error closing channel'));
+                yield this.connection.close().catch(() => console.warn('Error closing connection'));
+                return queueData.messageCount || 0;
+            }
+            catch (error) {
+                console.error('Error get queue message count', error);
+                throw error.message;
+            }
+        });
+    }
+    getQueuePriorityMessageCount(queue_1) {
+        return __awaiter(this, arguments, void 0, function* (queue, maxQueuePriority = 10) {
+            return this.getQueueMessageCount(queue, { maxPriority: maxQueuePriority });
+        });
+    }
+    connectionOptions() {
+        return {
+            url: `amqps://${this.config.user}:${this.config.passwd}@${this.config.host}:${this.config.port}/${this.config.vhost}`,
+            options: { heartbeat: this.config.connectionHeartbeat },
+        };
+    }
+    consume(queueName_1, _function_1) {
+        return __awaiter(this, arguments, void 0, function* (queueName, _function, noAckParam = true, prefetchParam = 0, maxPriority = false) {
+            this.connection = yield this.serverConnect();
+            this.channel = yield this.connection.createChannel();
+            console.log('QUEUE Channel connected');
+            const queueOptions = { durable: true };
+            if (maxPriority) {
+                queueOptions.maxPriority = maxPriority;
+            }
+            yield this.channel.assertQueue(queueName, queueOptions).then((ok) => {
+                console.log(`[*] Waiting for messages from ${queueName}. To exit press CTRL+C`);
+                return ok;
+            });
+            if (prefetchParam !== 0 && !noAckParam) {
+                yield this.channel.prefetch(prefetchParam);
+            }
+            return this.channel.consume(queueName, (msg) => {
+                console.log(' [x] Received in \'%s\': \'%s\'', queueName, msg.content.toString());
+                _function(queueName, msg.content.toString(), this.channel, msg);
+            }, { noAck: noAckParam });
         });
     }
     ack(messageObj, channel) {
@@ -97,34 +170,17 @@ class Amqp {
             return false;
         });
     }
-    consume(queueName_1, _function_1) {
-        return __awaiter(this, arguments, void 0, function* (queueName, _function, noAckParam = true, prefetchParam = 0, maxPriority = false) {
-            const connection = yield this.serverConnect();
-            const channel = yield connection.createChannel();
-            console.log('QUEUE Channel connected');
-            const queueOptions = { durable: true };
-            if (maxPriority) {
-                queueOptions.maxPriority = maxPriority;
-            }
-            yield channel.assertQueue(queueName, queueOptions).then((ok) => {
-                console.log(`[*] Waiting for messages from ${queueName}. To exit press CTRL+C`);
-                return ok;
-            });
-            if (prefetchParam !== 0 && !noAckParam) {
-                yield channel.prefetch(prefetchParam);
-            }
-            this.connection = connection;
-            this.channel = channel;
-            return channel.consume(queueName, (msg) => {
-                console.log(' [x] Received in \'%s\': \'%s\'', queueName, msg.content.toString());
-                _function(queueName, msg.content.toString(), channel, msg);
-            }, { noAck: noAckParam });
-        });
-    }
     serverConnect() {
-        const { url, options } = this.connectionOptions();
-        console.log(`Connecting to ${url}`);
-        return this.queueLib.connect(url, options);
+        return __awaiter(this, void 0, void 0, function* () {
+            const protocol = this.config.useSSL === true || ['true', 'TRUE'].includes(this.config.useSSL) ? 'amqps' : 'amqp';
+            const connectionPath = `${protocol}://${this.config.user}:${this.config.passwd}@${this.config.host}:${this.config.port}/${this.config.vhost}`;
+            console.log(`Connecting to ${connectionPath}`);
+            return this.queueLib.connect(connectionPath, { heartbeat: this.config.connectionHeartbeat })
+                .then((connection) => {
+                console.log('QUEUE Connection established');
+                return connection;
+            });
+        });
     }
 }
 exports.Amqp = Amqp;

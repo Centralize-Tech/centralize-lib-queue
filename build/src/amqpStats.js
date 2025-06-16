@@ -13,6 +13,9 @@ class AmqpStats {
         this.protocol = options.protocol || 'http';
         this.requestInstance = axios_1.default;
     }
+    setRequestInstance(instance) {
+        this.requestInstance = instance;
+    }
     sendRequest(endpoint, params = {}, method = 'GET') {
         const url = this.getRequestPath(endpoint);
         console.log(url);

@@ -4,17 +4,21 @@ import { IAmqpStats } from './interfaces/IAmqpStats';
 
 export class AmqpStats {
 
-  hostname: any;
-  username: any;
-  password: any;
-  protocol: any;
-  requestInstance: any;
+  public hostname: any;
+  public username: any;
+  public password: any;
+  public protocol: any;
+  public requestInstance: any;
   constructor(options: IAmqpStats = {}) {
     this.hostname = options.hostname || 'localhost:55672';
     this.username = options.username || 'guest';
     this.password = options.password || 'guest';
     this.protocol = options.protocol || 'http';
     this.requestInstance = axios;
+  }
+
+  setRequestInstance(instance: any) {
+    this.requestInstance = instance;
   }
 
   sendRequest(endpoint: string, params: object = {}, method: string = 'GET') {
