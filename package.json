@@ -1,7 +1,7 @@
 {
   "name": "centralize-lib-queue",
   "version": "1.0.0",
-  "main": "./index.ts",
+  "main": "./build/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js"

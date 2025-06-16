@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -9,7 +18,7 @@ const amqpStats_1 = require("./amqpStats");
 const config_1 = __importDefault(require("../config"));
 class Amqp {
     constructor(inputConfig = {}) {
-        this.config = { ...config_1.default, ...inputConfig };
+        this.config = Object.assign(Object.assign({}, config_1.default), inputConfig);
         this.queueLib = amqplib_1.default;
         const useSSL = this.parseBoolean(this.config.useSSL);
         console.log(`Connecting to ${this.config.host}`);
@@ -22,10 +31,10 @@ class Amqp {
         console.log('Successful connection');
     }
     setConfig(inputConfig = {}) {
-        this.config = { ...this.config, ...inputConfig };
+        this.config = Object.assign(Object.assign({}, this.config), inputConfig);
     }
     parseBoolean(value) {
-        return value === true || value?.toString().toLowerCase() === 'true';
+        return value === true || (value === null || value === void 0 ? void 0 : value.toString().toLowerCase()) === 'true';
     }
     get connectionOptions() {
         const protocol = this.parseBoolean(this.config.useSSL) ? 'amqps' : 'amqp';
@@ -47,66 +56,72 @@ class Amqp {
     sendJSONMessage(message, queue, isMassive = false) {
         return this.sendMessage(message, queue, isMassive);
     }
-    async sendMessage(message, queue, isMassive = false, options = {}) {
-        let connection;
-        let channel;
-        const messagesOptions = options.messageOptions || {};
-        const queueOptions = options.queueOptions || {};
-        try {
-            connection = await this.serverConnect();
-            console.log('QUEUE Connection established');
-            channel = await connection.createChannel();
-            console.log('QUEUE Channel connected');
-            await channel.assertQueue(queue, queueOptions);
-            console.log('QUEUE Queue asserted');
-            if (isMassive && Array.isArray(message)) {
-                const promises = message.map((messageElement) => channel.sendToQueue(queue, Buffer.from(JSON.stringify(messageElement)), messagesOptions));
-                await Promise.allSettled(promises);
+    sendMessage(message_1, queue_1) {
+        return __awaiter(this, arguments, void 0, function* (message, queue, isMassive = false, options = {}) {
+            let connection;
+            let channel;
+            const messagesOptions = options.messageOptions || {};
+            const queueOptions = options.queueOptions || {};
+            try {
+                connection = yield this.serverConnect();
+                console.log('QUEUE Connection established');
+                channel = yield connection.createChannel();
+                console.log('QUEUE Channel connected');
+                yield channel.assertQueue(queue, queueOptions);
+                console.log('QUEUE Queue asserted');
+                if (isMassive && Array.isArray(message)) {
+                    const promises = message.map((messageElement) => channel.sendToQueue(queue, Buffer.from(JSON.stringify(messageElement)), messagesOptions));
+                    yield Promise.allSettled(promises);
+                }
+                else {
+                    yield channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), messagesOptions);
+                }
+                return 'Message sent successfully';
             }
-            else {
-                await channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), messagesOptions);
+            catch (error) {
+                console.error('Error send message', error);
+                throw error.message;
             }
-            return 'Message sent successfully';
-        }
-        catch (error) {
-            console.error('Error send message', error);
-            throw error.message;
-        }
-        finally {
-            if (channel)
-                await channel.close().catch(() => console.warn('Error closing channel'));
-            if (connection)
-                await connection.close().catch(() => console.warn('Error closing connection'));
-            console.log('QUEUE Closing connection');
-        }
-    }
-    async ack(messageObj, channel) {
-        if (channel) {
-            return channel.ack(messageObj);
-        }
-        return false;
-    }
-    async consume(queueName, _function, noAckParam = true, prefetchParam = 0, maxPriority = false) {
-        const connection = await this.serverConnect();
-        const channel = await connection.createChannel();
-        console.log('QUEUE Channel connected');
-        const queueOptions = { durable: true };
-        if (maxPriority) {
-            queueOptions.maxPriority = maxPriority;
-        }
-        await channel.assertQueue(queueName, queueOptions).then((ok) => {
-            console.log(`[*] Waiting for messages from ${queueName}. To exit press CTRL+C`);
-            return ok;
+            finally {
+                if (channel)
+                    yield channel.close().catch(() => console.warn('Error closing channel'));
+                if (connection)
+                    yield connection.close().catch(() => console.warn('Error closing connection'));
+                console.log('QUEUE Closing connection');
+            }
         });
-        if (prefetchParam !== 0 && !noAckParam) {
-            await channel.prefetch(prefetchParam);
-        }
-        this.connection = connection;
-        this.channel = channel;
-        return channel.consume(queueName, (msg) => {
-            console.log(' [x] Received in \'%s\': \'%s\'', queueName, msg.content.toString());
-            _function(queueName, msg.content.toString(), channel, msg);
-        }, { noAck: noAckParam });
+    }
+    ack(messageObj, channel) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (channel) {
+                return channel.ack(messageObj);
+            }
+            return false;
+        });
+    }
+    consume(queueName_1, _function_1) {
+        return __awaiter(this, arguments, void 0, function* (queueName, _function, noAckParam = true, prefetchParam = 0, maxPriority = false) {
+            const connection = yield this.serverConnect();
+            const channel = yield connection.createChannel();
+            console.log('QUEUE Channel connected');
+            const queueOptions = { durable: true };
+            if (maxPriority) {
+                queueOptions.maxPriority = maxPriority;
+            }
+            yield channel.assertQueue(queueName, queueOptions).then((ok) => {
+                console.log(`[*] Waiting for messages from ${queueName}. To exit press CTRL+C`);
+                return ok;
+            });
+            if (prefetchParam !== 0 && !noAckParam) {
+                yield channel.prefetch(prefetchParam);
+            }
+            this.connection = connection;
+            this.channel = channel;
+            return channel.consume(queueName, (msg) => {
+                console.log(' [x] Received in \'%s\': \'%s\'', queueName, msg.content.toString());
+                _function(queueName, msg.content.toString(), channel, msg);
+            }, { noAck: noAckParam });
+        });
     }
     serverConnect() {
         const { url, options } = this.connectionOptions;
