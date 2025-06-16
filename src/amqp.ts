@@ -5,7 +5,7 @@ import { IConfig } from './interfaces/IConfig';
 import { IConnectionOptions } from './interfaces/IAmqp';
 import config from '../config';
 
-export class Amqp {
+class Amqp {
 
   config: any;
   ampqStats: AmqpStats;
@@ -186,3 +186,5 @@ export class Amqp {
       });
   }
 }
+
+module.exports = Amqp;
